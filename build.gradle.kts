@@ -1,20 +1,39 @@
 plugins {
     id("java")
+    id("io.qameta.allure") version "3.0.0" apply false
 }
 
-group = "org.example"
-version = "1.0-SNAPSHOT"
+allprojects {
+    group = "org.example"
+    version = "1.0-SNAPSHOT"
 
-repositories {
-    mavenCentral()
+    repositories {
+        mavenCentral()
+    }
 }
 
-dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-}
+subprojects {
+    apply(plugin = "java")
 
-tasks.test {
-    useJUnitPlatform()
+    java {
+        sourceCompatibility = JavaVersion.VERSION_17
+    }
+
+    tasks.withType<JavaCompile> {
+        options.encoding = "UTF-8"
+    }
+
+    tasks.withType<Test> {
+        useJUnitPlatform()
+        systemProperty("file.encoding", "UTF-8")
+    }
+    // Smoke-прогон API-тестов
+    tasks.register("apiSmoke") {
+        dependsOn(":api-tests:test")
+    }
+
+    // Smoke-прогон UI-тестов
+    tasks.register("uiSmoke") {
+        dependsOn(":ui-tests:test")
+    }
 }
